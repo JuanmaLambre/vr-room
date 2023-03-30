@@ -127,7 +127,9 @@ export class HandController {
     this.checkFloorIntersection = false;
   }
 
-  private onGripDown() {}
+  private onGripDown() {
+    if (this.highlighted) console.log('>>> GRAB', this.highlighted.object.name);
+  }
 
   private onGripUp() {}
 
