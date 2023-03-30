@@ -21,13 +21,13 @@ export class SceneManager {
     this.marker.name = 'marker';
     this.scene.add(this.marker);
 
-    const floorGeom = new THREE.PlaneGeometry(20, 20);
+    const floorGeom = new THREE.PlaneGeometry(10, 10);
     floorGeom.rotateX(-Math.PI / 2);
     this.floor = new THREE.Mesh(floorGeom);
     this.floor.name = 'floor';
 
-    // TODO: Get flor floor
-    this.walkingArea = new THREE.Box3(new THREE.Vector3(-10, 0, -10), new THREE.Vector3(10, 0, 10));
+    floorGeom.computeBoundingBox();
+    this.walkingArea = floorGeom.boundingBox.clone();
   }
 
   addRigidObject(ro: RigidObject, addToScene = true) {
