@@ -6,7 +6,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { HandController } from './xr/HandController';
 import { SceneManager } from './SceneManager';
 import { Clock } from './utils/Clock';
-import { RigidGeometry } from './rigidObjects/RigidGeometry';
+import { RigidGeometry } from './objects/RigidGeometry';
+import { DebugBoxObject } from './objects/DebugBoxObject';
 
 (window as any).THREE = THREE;
 (window as any).Ammo = Ammo;
@@ -53,7 +54,7 @@ function setupThreejs() {
 
   // Debug meshes
   sceneManager.scene.add(new THREE.AxesHelper(5));
-  const grid = new THREE.GridHelper(20, 80);
+  const grid = new THREE.GridHelper(10, 50);
   grid.translateY(0.001);
   sceneManager.scene.add(grid);
 
@@ -75,12 +76,7 @@ function setupThreejs() {
   sceneManager.addRigidObject(ground);
 
   // Create a debug box
-  const boxGeom = new THREE.BoxGeometry(1, 2, 1);
-  const boxObject = new THREE.Mesh(boxGeom, new THREE.MeshPhongMaterial({ color: 0xaa0000 }));
-  boxObject.position.set(0, 5, -2);
-  boxObject.quaternion.set(0, 0, 0.5, 1);
-  boxObject.name = 'rigid box';
-  const box = new RigidGeometry(boxObject);
+  const box = new DebugBoxObject();
   sceneManager.addRigidObject(box);
 }
 

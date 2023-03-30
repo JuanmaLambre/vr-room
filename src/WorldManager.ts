@@ -1,5 +1,5 @@
 import Ammo from 'ammojs-typed';
-import { RigidObject } from './rigidObjects/RigidObject';
+import { RigidObject } from './objects/RigidObject';
 import { Clock } from './utils/Clock';
 
 export class WorldManager {

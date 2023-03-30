@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { RigidObject } from './rigidObjects/RigidObject';
+import { RigidObject } from './objects/RigidObject';
 import { WorldManager } from './WorldManager';
 
 export class SceneManager {

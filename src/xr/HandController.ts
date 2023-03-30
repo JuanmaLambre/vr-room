@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory';
-import { HandControllerObject } from '../rigidObjects/HandControllerObject';
+import { HandControllerObject } from '../objects/HandControllerObject';
 import { SceneManager } from '../SceneManager';
 import { XRRemappedGamepad } from '../types/XRRemappedGamepad';
 import { info } from '../utils/logger';

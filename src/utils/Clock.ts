@@ -3,8 +3,8 @@ import * as THREE from 'three';
 const clock = new THREE.Clock();
 
 export const Clock = {
-  delta: 0,
-  elapsed: 0,
+  delta: 0, // Seconds
+  elapsed: 0, // Seconds
 
   start() {
     clock.start();
