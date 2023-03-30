@@ -6,9 +6,11 @@ const HIGHLIGHT_EMISSIVE = new THREE.Color(0x00aa00);
 export class RigidObject {
   object: THREE.Object3D;
   rigidBody: Ammo.btRigidBody;
-  hitSurface: THREE.BufferGeometry;
+  hitSurface: THREE.Object3D;
 
   callUpdate: boolean = true;
+  grabbable: boolean = true;
+  enabled: boolean = true; // Enabled for interaction
 
   protected highlightMaterials: THREE.MeshStandardMaterial[] = [];
 
@@ -18,6 +20,10 @@ export class RigidObject {
     this.rigidBody.getMotionState().getWorldTransform(transform);
     const position = transform.getOrigin();
     return new THREE.Vector3(position.x(), position.y(), position.z());
+  }
+
+  get isInteractable() {
+    return this.hitSurface != undefined;
   }
 
   highlight(value = true) {

@@ -3,7 +3,8 @@ import { RigidObject } from './objects/RigidObject';
 import { Clock } from './utils/Clock';
 
 export class WorldManager {
-  private rigidObjects: RigidObject[] = [];
+  rigidObjects: RigidObject[] = [];
+
   private dynamicsWorld: Ammo.btDiscreteDynamicsWorld;
 
   constructor() {

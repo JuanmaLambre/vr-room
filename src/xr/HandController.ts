@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory';
 import { HandControllerObject } from '../objects/HandControllerObject';
+import { RigidObject } from '../objects/RigidObject';
 import { SceneManager } from '../SceneManager';
 import { XRRemappedGamepad } from '../types/XRRemappedGamepad';
 import { info } from '../utils/logger';
@@ -21,6 +22,7 @@ export class HandController {
   private baseReferenceSpace: XRReferenceSpace;
 
   // Temporal buffers
+  private highlighted?: RigidObject;
   private floorIntersection?: THREE.Vector3;
   private checkFloorIntersection: boolean = false;
 
@@ -55,6 +57,8 @@ export class HandController {
     if (!this.monitor) return;
 
     this.monitor.update();
+
+    this.checkAimedObject();
 
     if (this.checkFloorIntersection) this.updateFloorIntersection();
   }
@@ -158,9 +162,7 @@ export class HandController {
 
     const intersects = raycaster.intersectObjects(objects);
 
-    if (intersects.length > 0) {
-      intersection = intersects[0].point;
-    }
+    if (intersects.length > 0) intersection = intersects[0].point;
 
     return intersection;
   }
@@ -240,6 +242,37 @@ export class HandController {
           transparent: true,
         });
         return new THREE.Mesh(geometry, material);
+    }
+  }
+
+  private checkAimedObject() {
+    if (this.highlighted) {
+      this.highlighted.highlight(false);
+      this.highlighted = undefined;
+    }
+
+    const objects = this.sceneManager.rigidObjects.filter((ro) => ro.enabled && ro.isInteractable);
+
+    const intersections = objects
+      .map((ro) => {
+        const int = this.getRayControllerIntersections([ro.hitSurface]);
+        if (!int) return undefined;
+        else
+          return {
+            object: ro,
+            intersection: ro.hitSurface.getWorldPosition(new THREE.Vector3()).add(int),
+          };
+      })
+      .filter((i) => i);
+
+    const ctrlPosition = this.controller.getWorldPosition(new THREE.Vector3());
+    const closest = intersections.sort(
+      (a, b) => a.intersection.distanceToSquared(ctrlPosition) - b.intersection.distanceToSquared(ctrlPosition)
+    )[0];
+
+    if (closest) {
+      this.highlighted = closest.object;
+      this.highlighted.highlight();
     }
   }
 }

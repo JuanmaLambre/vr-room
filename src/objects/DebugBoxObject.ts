@@ -12,6 +12,6 @@ export class DebugBoxObject extends RigidGeometry {
     super(object);
 
     this.populateHighlightMats();
-    this.hitSurface = boxGeom;
+    this.hitSurface = this.object;
   }
 }

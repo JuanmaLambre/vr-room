@@ -30,6 +30,10 @@ export class SceneManager {
     this.walkingArea = floorGeom.boundingBox.clone();
   }
 
+  get rigidObjects() {
+    return [...this.world.rigidObjects];
+  }
+
   addRigidObject(ro: RigidObject, addToScene = true) {
     this.world.add(ro);
     if (addToScene) this.scene.add(ro.object);
