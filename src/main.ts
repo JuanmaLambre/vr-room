@@ -54,7 +54,7 @@ function setupThreejs() {
 
   // Debug meshes
   sceneManager.scene.add(new THREE.AxesHelper(5));
-  const grid = new THREE.GridHelper(10, 50);
+  const grid = new THREE.GridHelper(10, 20);
   grid.translateY(0.001);
   sceneManager.scene.add(grid);
 

@@ -9,6 +9,7 @@ export class HandControllerObject extends RigidObject {
 
     const shape = new Ammo.btSphereShape(0.1);
     this.rigidBody = rigidBodyFromObject(obj, { shape });
+    this.setMass(0);
   }
 
   update() {
