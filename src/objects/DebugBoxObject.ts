@@ -22,7 +22,10 @@ export class DebugBoxObject extends RigidGeometry {
     object.add(this.corners);
 
     this.populateHighlightMats();
-    this.hitSurface = this.object;
+    this.hitSurface = new THREE.Mesh(boxGeom);
+    this.hitSurface.name = 'hitSurface';
+    this.hitSurface.visible = false;
+    this.object.add(this.hitSurface);
 
     (window as any).box = this;
     if (DebugBoxObject.SHOW_RBCORNERS) setTimeout(() => this.showRBCorners(), 1000);
