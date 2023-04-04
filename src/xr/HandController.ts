@@ -7,8 +7,6 @@ import { XRRemappedGamepad } from '../types/XRRemappedGamepad';
 import { info } from '../utils/logger';
 import { Handedness, XRGamepadMonitor, EventTypes as XRGamepadMonitorEvents } from './XRGamepadMonitor';
 
-const VIEW_ROTATION_DELTA = Math.PI / 8;
-
 export class HandController {
   handedness: Handedness;
   index: number;
@@ -42,11 +40,13 @@ export class HandController {
     this.controller.addEventListener('connected', this.onConnected.bind(this));
     this.controller.addEventListener('disconnected', this.onDisconnected.bind(this));
 
+    this.controller.name = `controller${index}`;
     this.sceneManager.scene.add(this.controller);
 
     // The XRControllerModelFactory will automatically fetch controller models that match what the user is holding as closely as possible
     const controllerModelFactory = new XRControllerModelFactory();
     let grip = this.xr.getControllerGrip(index);
+    grip.name = `grip${index}`;
     grip.add(controllerModelFactory.createControllerModel(grip));
     this.sceneManager.scene.add(grip);
     this.updateViewerTransform();
@@ -87,17 +87,6 @@ export class HandController {
       if (event.button == 'Grip') this.onGripUp();
       else if (event.button == 'Trigger') this.onSelectUp();
     });
-
-    if (this.handedness == 'right') {
-      this.monitor.addEventListener(XRGamepadMonitorEvents.ON_AXIS_X_HOLDED, (event: any) => {
-        console.log('ON_AXIS_X_HOLDED ' + event.value);
-
-        let angle = event.value > 0 ? VIEW_ROTATION_DELTA : -VIEW_ROTATION_DELTA;
-
-        this.viewerYRotation += angle;
-        this.updateViewerTransform();
-      });
-    }
 
     this.rigidObject = new HandControllerObject(this.buildController(event.data));
     this.controller.add(this.rigidObject.object);
@@ -213,7 +202,6 @@ export class HandController {
     const transform = new XRRigidTransform(offsetPosition, offsetRotation);
     const spaceOffset = this.baseReferenceSpace.getOffsetReferenceSpace(transform);
 
-    //console.log("updateViewerTransform: pos:" + this.viewerPosition.x + "," + this.viewerPosition.z + " ang:" + this.viewerYRotation);
     this.xr.setReferenceSpace(spaceOffset);
   }
 
@@ -222,28 +210,23 @@ export class HandController {
 
     // See WebXR > Concepts > Targeting categories
     // https://immersive-web.github.io/webxr/input-explainer.html#concepts
-    switch (data.targetRayMode) {
+    if (data.targetRayMode == 'tracked-pointer') {
       // Pointers can be tracked separately from the viewer (e.g. Cculus touch controllers)
-      case 'tracked-pointer':
-        geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, -1], 3));
-        geometry.setAttribute('color', new THREE.Float32BufferAttribute([0.5, 0.5, 0.5, 0, 0, 0], 3));
+      geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, -1], 3));
+      geometry.setAttribute('color', new THREE.Float32BufferAttribute([0.5, 0.5, 0.5, 0, 0, 0], 3));
 
-        material = new THREE.LineBasicMaterial({
-          vertexColors: true,
-          blending: THREE.AdditiveBlending,
-        });
+      material = new THREE.LineBasicMaterial({ vertexColors: true, blending: THREE.AdditiveBlending });
 
-        return new THREE.Line(geometry, material);
-
+      return new THREE.Line(geometry, material);
+    } else if (data.targetRayMode == 'gaze') {
       // Gaze-based input sources do not have their own tracking mechanism and instead use the viewer’s head position for targeting.
-      case 'gaze':
-        geometry = new THREE.RingGeometry(0.02, 0.04, 32).translate(0, 0, -1);
-        material = new THREE.MeshBasicMaterial({
-          opacity: 0.5,
-          transparent: true,
-        });
-        return new THREE.Mesh(geometry, material);
+      geometry = new THREE.RingGeometry(0.02, 0.04, 32).translate(0, 0, -1);
+      material = new THREE.MeshBasicMaterial({
+        opacity: 0.5,
+        transparent: true,
+      });
+      return new THREE.Mesh(geometry, material);
     }
   }
 
