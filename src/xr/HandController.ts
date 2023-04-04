@@ -7,6 +7,8 @@ import { XRRemappedGamepad } from '../types/XRRemappedGamepad';
 import { info } from '../utils/logger';
 import { Handedness, XRGamepadMonitor, EventTypes as XRGamepadMonitorEvents } from './XRGamepadMonitor';
 
+const SHOW_HIT_POINT = true;
+
 export class HandController {
   handedness: Handedness;
   index: number;
@@ -27,9 +29,20 @@ export class HandController {
   private viewerYRotation = 0;
   private viewerPosition = new THREE.Vector3(0, 0, 0);
 
+  // Debug
+  private debugHitPoint: THREE.Mesh;
+
   constructor(xr: THREE.WebXRManager, sceneMngr: SceneManager) {
     this.xr = xr;
     this.sceneManager = sceneMngr;
+
+    this.debugHitPoint = new THREE.Mesh(
+      new THREE.SphereGeometry(0.05, 4, 4),
+      new THREE.MeshBasicMaterial({ color: 0x8800ee })
+    );
+    this.debugHitPoint.name = 'debugHitPoint';
+    this.debugHitPoint.visible = SHOW_HIT_POINT;
+    this.sceneManager.scene.add(this.debugHitPoint);
   }
 
   setup(index: number) {
@@ -50,6 +63,9 @@ export class HandController {
     grip.add(controllerModelFactory.createControllerModel(grip));
     this.sceneManager.scene.add(grip);
     this.updateViewerTransform();
+
+    // Debug:
+    this.controller.add(new THREE.AxesHelper(0.1));
   }
 
   update() {
@@ -58,7 +74,7 @@ export class HandController {
 
     this.monitor.update();
 
-    this.checkAimedObject();
+    this.checkObjectAiming();
 
     if (this.checkFloorIntersection) this.updateFloorIntersection();
   }
@@ -126,47 +142,43 @@ export class HandController {
     const { floor } = this.sceneManager;
     const { marker } = this.sceneManager;
 
-    this.floorIntersection = this.getRayControllerIntersections([floor]);
+    this.floorIntersection = this.getRayControllerIntersection(floor);
     marker.visible = !!this.floorIntersection;
 
     if (this.floorIntersection) {
       const { min, max } = this.sceneManager.walkingArea;
       const int = this.floorIntersection;
       this.floorIntersection.x = Math.min(Math.max(min.x, int.x), max.x);
-      this.floorIntersection.y = Math.min(Math.max(min.y, int.y), max.y) + 0.01;
+      this.floorIntersection.y = Math.min(Math.max(min.y, int.y), max.y) + 0.001;
       this.floorIntersection.z = Math.min(Math.max(min.z, int.z), max.z);
       marker.position.copy(this.floorIntersection);
     }
   }
 
   /** Checks intersection between a controller's ray and a list of meshes
-   * @returns Point where the ray intersects any objects' mesh, or undefined if there isn't any
+   * @returns Point in world coords where the ray intersects any objects' mesh, or undefined if there isn't any
    */
-  private getRayControllerIntersections(objects: THREE.Object3D[]): THREE.Vector3 | undefined {
+  private getRayControllerIntersection(object: THREE.Object3D): THREE.Vector3 | undefined {
     const raycaster = new THREE.Raycaster();
-    let intersection = undefined;
 
-    let ray = this.getControllerRay();
-
+    const ray = this.getControllerRay();
     raycaster.ray.origin = ray.origin;
     raycaster.ray.direction = ray.direction;
 
-    const intersects = raycaster.intersectObjects(objects);
+    const intersects = raycaster.intersectObject(object); // Returns in world coords
 
-    if (intersects.length > 0) intersection = intersects[0].point;
-
-    return intersection;
+    return intersects[0]?.point;
   }
 
   private getControllerRay() {
     const mat = new THREE.Matrix4();
-
     mat.identity().extractRotation(this.controller.matrixWorld);
 
     let ray = {
       origin: new THREE.Vector3().setFromMatrixPosition(this.controller.matrixWorld),
-      direction: new THREE.Vector3().set(0, 0, -1).applyMatrix4(mat),
+      direction: new THREE.Vector3(0, 0, -1).applyMatrix4(mat),
     };
+
     return ray;
   }
 
@@ -230,7 +242,7 @@ export class HandController {
     }
   }
 
-  private checkAimedObject() {
+  private checkObjectAiming() {
     if (this.highlighted) {
       this.highlighted.highlight(false);
       this.highlighted = undefined;
@@ -240,13 +252,8 @@ export class HandController {
 
     const intersections = objects
       .map((ro) => {
-        const int = this.getRayControllerIntersections([ro.hitSurface]);
-        if (!int) return undefined;
-        else
-          return {
-            object: ro,
-            intersection: ro.hitSurface.getWorldPosition(new THREE.Vector3()).add(int),
-          };
+        const intersection = this.getRayControllerIntersection(ro.hitSurface);
+        return intersection ? { object: ro, intersection } : undefined;
       })
       .filter((i) => i);
 
@@ -256,8 +263,11 @@ export class HandController {
     )[0];
 
     if (closest) {
+      this.debugHitPoint.position.copy(closest.intersection);
       this.highlighted = closest.object;
       this.highlighted.highlight();
     }
+
+    this.debugHitPoint.visible = SHOW_HIT_POINT && !!closest;
   }
 }
