@@ -41,7 +41,7 @@ export class HandController {
       new THREE.MeshBasicMaterial({ color: 0x8800ee })
     );
     this.debugHitPoint.name = 'debugHitPoint';
-    this.debugHitPoint.visible = SHOW_HIT_POINT;
+    this.debugHitPoint.visible = false;
     this.sceneManager.scene.add(this.debugHitPoint);
   }
 
@@ -73,10 +73,8 @@ export class HandController {
     if (!this.monitor) return;
 
     this.monitor.update();
-
     this.checkObjectAiming();
-
-    if (this.checkFloorIntersection) this.updateFloorIntersection();
+    this.updateFloorIntersection();
   }
 
   /** Execute haptic vibration */
@@ -117,7 +115,7 @@ export class HandController {
   private onThumbButtonDown() {}
 
   private onSelectDown() {
-    this.checkFloorIntersection = true;
+    if (!this.highlighted) this.checkFloorIntersection = true;
   }
 
   private onJoystickDown() {}
@@ -141,6 +139,12 @@ export class HandController {
   private updateFloorIntersection() {
     const { floor } = this.sceneManager;
     const { marker } = this.sceneManager;
+
+    if (!this.checkFloorIntersection) {
+      this.floorIntersection = undefined;
+      marker.visible = false;
+      return;
+    }
 
     this.floorIntersection = this.getRayControllerIntersection(floor);
     marker.visible = !!this.floorIntersection;
