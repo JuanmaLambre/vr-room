@@ -28,7 +28,7 @@ export class DebugBoxObject extends RigidGeometry {
     this.object.add(this.hitSurface);
 
     (window as any).box = this;
-    if (DebugBoxObject.SHOW_RBCORNERS) setTimeout(() => this.showRBCorners(), 1000);
+    if (DebugBoxObject.SHOW_RBCORNERS) this.showRBCorners();
   }
 
   get width() {

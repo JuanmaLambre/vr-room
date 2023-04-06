@@ -9,7 +9,14 @@ export class SceneManager {
   floor: THREE.Mesh;
   walkingArea: THREE.Box3;
 
-  constructor() {
+  private static _instance: SceneManager;
+
+  static get instance(): SceneManager {
+    if (this._instance == undefined) this._instance = new SceneManager();
+    return this._instance;
+  }
+
+  private constructor() {
     this.world = new WorldManager();
     this.scene = new THREE.Scene();
 
@@ -37,6 +44,10 @@ export class SceneManager {
   addRigidObject(ro: RigidObject, addToScene = true) {
     this.world.add(ro);
     if (addToScene) this.scene.add(ro.object);
+  }
+
+  removeRigidObject(ro: RigidObject) {
+    this.world.remove(ro);
   }
 
   update() {

@@ -22,6 +22,10 @@ export class VRObject {
     });
   }
 
+  onGrabbed(): void {}
+
+  onDropped(): void {}
+
   protected populateHighlightMats() {
     if (!this.object) return;
 

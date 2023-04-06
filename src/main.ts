@@ -41,11 +41,11 @@ function setupRenderer() {
 }
 
 function setupThreejs() {
-  sceneManager = new SceneManager();
+  sceneManager = SceneManager.instance;
   (window as any).sceneManager = sceneManager;
 
   camera = new THREE.PerspectiveCamera(50, undefined, 0.1, 10000);
-  camera.position.set(0, 1, 6);
+  camera.position.set(0, 1, 5);
 
   const light = new THREE.PointLight(0xffffff, 1);
   light.position.set(-3, 5, -3);
@@ -59,6 +59,7 @@ function setupThreejs() {
   sceneManager.scene.add(grid);
 
   controls = new OrbitControls(camera, renderer.domElement);
+  controls.target.set(0, 2, 0);
   document.getElementById('container3D').appendChild(renderer.domElement);
 
   loaderElement = document.getElementById('loader');
