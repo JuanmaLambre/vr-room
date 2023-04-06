@@ -4,9 +4,7 @@ import { rigidBodyFromObject } from './RigidObjectFactory';
 
 export class RigidGeometry extends RigidObject {
   constructor(object: Object3DWithGeometry) {
-    super();
-
-    this.object = object;
-    this.rigidBody = rigidBodyFromObject(object);
+    const rb = rigidBodyFromObject(object);
+    super(object, rb);
   }
 }

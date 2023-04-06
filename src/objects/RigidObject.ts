@@ -8,6 +8,11 @@ export class RigidObject extends VRObject {
 
   private syncOnUpdate: boolean = false;
 
+  constructor(obj: THREE.Object3D, rb: Ammo.btRigidBody) {
+    super(obj);
+    this.rigidBody = rb;
+  }
+
   /** World position */
   get rbPosition() {
     const transform = new Ammo.btTransform();

@@ -11,6 +11,10 @@ export class VRObject {
 
   protected highlightMaterials: THREE.MeshStandardMaterial[] = [];
 
+  constructor(obj: THREE.Object3D) {
+    this.object = obj;
+  }
+
   get isInteractable() {
     return this.hitSurface != undefined;
   }

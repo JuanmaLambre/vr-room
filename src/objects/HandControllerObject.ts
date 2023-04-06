@@ -4,11 +4,11 @@ import { rigidBodyFromObject } from './RigidObjectFactory';
 
 export class HandControllerObject extends RigidObject {
   constructor(obj: THREE.Object3D) {
-    super();
-    this.object = obj;
-
     const shape = new Ammo.btSphereShape(0.1);
-    this.rigidBody = rigidBodyFromObject(obj, { shape });
+    const rb = rigidBodyFromObject(obj, { shape });
+
+    super(obj, rb);
+
     this.setMass(0);
   }
 
