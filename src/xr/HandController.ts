@@ -4,10 +4,14 @@ import { HandControllerObject } from '../objects/HandControllerObject';
 import { RigidObject } from '../objects/RigidObject';
 import { SceneManager } from '../SceneManager';
 import { XRRemappedGamepad } from '../types/XRRemappedGamepad';
-import { info } from '../utils/logger';
+import { info, warn } from '../utils/logger';
 import { Handedness, XRGamepadMonitor, EventTypes as XRGamepadMonitorEvents } from './XRGamepadMonitor';
 
 const SHOW_HIT_POINT = true;
+
+type GrabbingType = {
+  object: RigidObject;
+};
 
 export class HandController {
   handedness: Handedness;
@@ -25,6 +29,7 @@ export class HandController {
   private highlighted?: RigidObject;
   private floorIntersection?: THREE.Vector3;
   private checkFloorIntersection: boolean = false;
+  private grabbing?: GrabbingType;
 
   private viewerYRotation = 0;
   private viewerPosition = new THREE.Vector3(0, 0, 0);
@@ -131,10 +136,12 @@ export class HandController {
   }
 
   private onGripDown() {
-    if (this.highlighted) console.log('>>> GRAB', this.highlighted.object.name);
+    if (this.highlighted) this.grabObject();
   }
 
-  private onGripUp() {}
+  private onGripUp() {
+    if (this.grabbing) this.dropObject();
+  }
 
   private updateFloorIntersection() {
     const { floor } = this.sceneManager;
@@ -273,5 +280,36 @@ export class HandController {
     }
 
     this.debugHitPoint.visible = SHOW_HIT_POINT && !!closest;
+  }
+
+  private grabObject() {
+    if (!this.highlighted) {
+      warn('Cannot grab object if none is highlighted');
+      return;
+    }
+
+    const grabbed = this.highlighted;
+    this.grabbing = { object: grabbed };
+    this.highlighted = undefined;
+    grabbed.highlight(false);
+    grabbed.object.position.set(0, 0, 0);
+    this.controller.add(grabbed.object);
+
+    grabbed.onGrabbed();
+  }
+
+  private dropObject() {
+    if (!this.grabbing) {
+      warn('Cannot drop object if none is being grabbed');
+      return;
+    }
+
+    const dropped = this.grabbing.object;
+    const worldPosition = dropped.object.getWorldPosition(new THREE.Vector3());
+    this.sceneManager.scene.add(dropped.object);
+    dropped.object.position.copy(worldPosition);
+    this.grabbing = undefined;
+
+    dropped.onDropped();
   }
 }
