@@ -38,7 +38,7 @@ export class SceneManager {
   }
 
   get rigidObjects() {
-    return [...this.world.rigidObjects];
+    return this.world.rigidObjects.map(({ object }) => object);
   }
 
   addRigidObject(ro: RigidObject, addToScene = true) {

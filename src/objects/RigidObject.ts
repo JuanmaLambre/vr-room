@@ -31,13 +31,14 @@ export class RigidObject extends VRObject {
   }
 
   disablePhysics() {
-    SceneManager.instance.world.remove(this);
+    SceneManager.instance.world.disable(this);
     this.rigidBody.setLinearVelocity(new Ammo.btVector3(0, 0, 0));
     this.rigidBody.setAngularVelocity(new Ammo.btVector3(0, 0, 0));
   }
 
   enablePhysics() {
-    SceneManager.instance.world.add(this);
+    SceneManager.instance.world.enable(this);
+    this.rigidBody.activate();
   }
 
   /** Updates the Ammo rigid body to the position and rotation of the THREE object */

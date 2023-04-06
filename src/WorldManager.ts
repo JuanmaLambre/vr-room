@@ -6,7 +6,7 @@ import { Clock } from './utils/Clock';
  * Wrapper for btDiscreteDynamicsWorld
  */
 export class WorldManager {
-  rigidObjects: RigidObject[] = [];
+  rigidObjects: { object: RigidObject; enabled: boolean }[] = [];
 
   private dynamicsWorld: Ammo.btDiscreteDynamicsWorld;
 
@@ -22,18 +22,27 @@ export class WorldManager {
 
   add(ro: RigidObject) {
     this.dynamicsWorld.addRigidBody(ro.rigidBody);
-    this.rigidObjects.push(ro);
+    this.rigidObjects.push({ object: ro, enabled: true });
   }
 
   remove(ro: RigidObject) {
     this.dynamicsWorld.removeRigidBody(ro.rigidBody);
-    const idx = this.rigidObjects.indexOf(ro);
+    const idx = this.rigidObjects.findIndex(({ object }) => object == ro);
     if (idx >= 0) this.rigidObjects.splice(idx, 1);
+  }
+
+  disable(ro: RigidObject) {
+    this.dynamicsWorld.removeRigidBody(ro.rigidBody);
+  }
+
+  enable(ro: RigidObject) {
+    this.dynamicsWorld.addRigidBody(ro.rigidBody);
   }
 
   update() {
     this.dynamicsWorld.stepSimulation(Clock.delta, 10);
 
-    this.rigidObjects.forEach((ro) => ro.update());
+    const updating = this.rigidObjects.filter(({ enabled }) => enabled);
+    updating.forEach((entry) => entry.object.update());
   }
 }
