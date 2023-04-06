@@ -1,10 +1,36 @@
 import * as path from 'path';
+import fs from 'fs';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCSSExtractPlugin from 'mini-css-extract-plugin';
+
+// Now we need to build the testbench entries (script files) and the pages (URL)
+const testbenchDirs = fs
+  .readdirSync(path.resolve(__dirname, './testbenches')) // Read files and folders in testbench folder
+  .map((dir) => path.resolve(__dirname, './testbenches', dir)) // Get absolute path
+  .filter((dir) => fs.lstatSync(dir).isDirectory()); // Filter directories
+
+const testbenchEntries = testbenchDirs.reduce((entries: any, entryDir) => {
+  const entryName = path.parse(entryDir).base;
+  return {
+    ...entries,
+    [entryName]: path.resolve(entryDir, './main.ts'),
+  };
+}, {});
+
+const testbenchesPages = testbenchDirs.map((entryDir) => {
+  const entryName = path.parse(entryDir).base;
+  return new HtmlWebpackPlugin({
+    template: path.resolve(entryDir, './index.html'),
+    filename: entryName + '.html',
+    chunks: [entryName],
+    minify: true,
+  });
+});
 
 const config: any = {
   entry: {
     app: path.resolve(__dirname, './src/main.ts'),
+    ...testbenchEntries,
   },
   mode: 'development',
   output: {
@@ -21,6 +47,9 @@ const config: any = {
       chunks: ['app'],
       minify: true,
     }),
+
+    // Testbench pages
+    ...testbenchesPages,
   ],
   module: {
     rules: [
