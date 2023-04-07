@@ -2,11 +2,13 @@ import * as THREE from 'three';
 import Ammo from 'ammojs-typed';
 import { VRObject } from './VRObject';
 import { SceneManager } from '../SceneManager';
+import { Clock } from '../utils/Clock';
 
 export class RigidObject extends VRObject {
   rigidBody: Ammo.btRigidBody;
 
   private syncOnUpdate: boolean = false;
+  private deltaPosition: THREE.Vector3 = new THREE.Vector3();
 
   constructor(obj: THREE.Object3D, rb: Ammo.btRigidBody) {
     super(obj);
@@ -48,16 +50,16 @@ export class RigidObject extends VRObject {
 
   /** Updates the Ammo rigid body to the position and rotation of the THREE object */
   sync() {
-    const position = this.object.getWorldPosition(new THREE.Vector3());
-    const quat = this.object.getWorldQuaternion(new THREE.Quaternion());
+    const oldPosition = this.getRBPosition();
 
-    const transform = new Ammo.btTransform();
-    transform.setIdentity();
-    transform.setOrigin(new Ammo.btVector3(position.x, position.y, position.z));
-    transform.setRotation(new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w));
+    // Update rigid body position and rotation
+    const newPosition = this.object.getWorldPosition(new THREE.Vector3());
+    this.setRBPosition(newPosition);
+    const newQuaternion = this.object.getWorldQuaternion(new THREE.Quaternion());
+    this.setRBQuaternion(newQuaternion);
 
-    this.rigidBody.setWorldTransform(transform);
-    this.rigidBody.getMotionState().setWorldTransform(transform);
+    // Calculate delta
+    this.deltaPosition.copy(newPosition).sub(oldPosition).divideScalar(Clock.delta);
   }
 
   /** Updates the THREE object to the position and rotation of the Ammo rigid body */
@@ -67,15 +69,41 @@ export class RigidObject extends VRObject {
       return;
     }
 
+    const position = this.getRBPosition();
+    this.object.position.copy(position);
+    const quaternion = this.getRBQuaternion();
+    this.object.quaternion.copy(quaternion);
+  }
+
+  /** Returns in world coordinates */
+  private getRBPosition(): THREE.Vector3 {
     const btTransform = new Ammo.btTransform();
     this.rigidBody.getMotionState().getWorldTransform(btTransform);
+    const pos = btTransform.getOrigin();
+    return new THREE.Vector3(pos.x(), pos.y(), pos.z());
+  }
 
-    const position = btTransform.getOrigin();
-    this.object.position.set(position.x(), position.y(), position.z());
+  private setRBPosition(position: THREE.Vector3) {
+    const transform = new Ammo.btTransform();
+    this.rigidBody.getMotionState().getWorldTransform(transform);
+    transform.setOrigin(new Ammo.btVector3(position.x, position.y, position.z));
+    this.rigidBody.setWorldTransform(transform);
+    this.rigidBody.getMotionState().setWorldTransform(transform);
+  }
 
-    const btQuat = new Ammo.btQuaternion(0, 0, 0, 0);
-    btTransform.getBasis().getRotation(btQuat);
-    const quaternion = new THREE.Quaternion(btQuat.x(), btQuat.y(), btQuat.z(), btQuat.w());
-    this.object.setRotationFromQuaternion(quaternion);
+  /** Returns world quaternion */
+  private getRBQuaternion(): THREE.Quaternion {
+    const btTransform = new Ammo.btTransform();
+    this.rigidBody.getMotionState().getWorldTransform(btTransform);
+    const quat = new Ammo.btQuaternion(0, 0, 0, 0);
+    btTransform.getBasis().getRotation(quat);
+    return new THREE.Quaternion(quat.x(), quat.y(), quat.z(), quat.w());
+  }
+
+  private setRBQuaternion(quat: THREE.Quaternion) {
+    const transform = new Ammo.btTransform();
+    this.rigidBody.getMotionState().getWorldTransform(transform);
+    transform.setRotation(new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w));
+    this.rigidBody.getMotionState().setWorldTransform(transform);
   }
 }
