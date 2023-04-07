@@ -8,6 +8,7 @@ import { SceneManager } from './SceneManager';
 import { Clock } from './utils/Clock';
 import { RigidGeometry } from './objects/RigidGeometry';
 import { DebugBoxObject } from './objects/DebugBoxObject';
+import { CanvasLogger, canvaslog } from './utils/logger';
 
 (window as any).THREE = THREE;
 (window as any).Ammo = Ammo;
@@ -67,10 +68,15 @@ function setupThreejs() {
   window.addEventListener('resize', onWindowResize, false);
   onWindowResize();
 
+  // Add debug console
+  const boardGeom = new THREE.PlaneGeometry(4, 2);
+  const board = new THREE.Mesh(boardGeom, CanvasLogger.buildMaterial(boardGeom));
+  board.translateY(boardGeom.parameters.height);
+  board.translateZ(-5);
+  sceneManager.scene.add(board);
+
   // Create a debug ground plane
-  const groundGeom = new THREE.PlaneGeometry(10, 10);
-  const groundObject = new THREE.Mesh(groundGeom, new THREE.MeshPhongMaterial({ color: 0x111133 }));
-  groundObject.rotateX(-Math.PI / 2);
+  const groundObject = new THREE.Mesh(sceneManager.floor.geometry, new THREE.MeshPhongMaterial({ color: 0x111133 }));
   groundObject.name = 'ground';
   const ground = new RigidGeometry(groundObject);
   ground.setMass(0);
@@ -114,6 +120,8 @@ async function start() {
   setupRenderer();
   await Ammo(Ammo);
   setupThreejs();
+
+  (window as any).canvaslog = canvaslog;
 
   // Add a button to enter/exit vr to the page
   document.body.appendChild(VRButton.createButton(renderer));
