@@ -3,6 +3,7 @@ import * as THREE from 'three';
 const HIGHLIGHT_EMISSIVE = new THREE.Color(0x00aa00);
 
 export class VRObject {
+  name: string;
   object: THREE.Object3D;
   hitSurface: THREE.Object3D;
 
@@ -13,6 +14,7 @@ export class VRObject {
 
   constructor(obj: THREE.Object3D) {
     this.object = obj;
+    this.name = this.object.name;
   }
 
   get isInteractable() {

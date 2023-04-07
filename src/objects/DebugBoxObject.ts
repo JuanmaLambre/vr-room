@@ -16,6 +16,7 @@ export class DebugBoxObject extends RigidGeometry {
     object.name = 'rigid box';
 
     super(object);
+    this.name = 'debug-box';
 
     const { width, height, depth } = this;
     object.add(new THREE.AxesHelper(Math.max(width, height, depth) / 1.7));

@@ -107,7 +107,9 @@ export class HandController {
       else if (event.button == 'Trigger') this.onSelectUp();
     });
 
-    this.rigidObject = new HandControllerObject(this.buildController(event.data));
+    const mesh = this.buildController(event.data);
+    mesh.name = this.handedness + '-controller';
+    this.rigidObject = new HandControllerObject(mesh);
     this.controller.add(this.rigidObject.object);
     this.sceneManager.addRigidObject(this.rigidObject, false);
   }
