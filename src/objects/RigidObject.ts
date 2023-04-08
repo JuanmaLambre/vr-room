@@ -4,11 +4,14 @@ import { VRObject } from './VRObject';
 import { SceneManager } from '../SceneManager';
 import { Clock } from '../utils/Clock';
 
+const ROTATION_INERTIA_FACTOR = 0.5;
+
 export class RigidObject extends VRObject {
   rigidBody: Ammo.btRigidBody;
 
   private syncOnUpdate: boolean = false;
   private deltaPosition: THREE.Vector3 = new THREE.Vector3();
+  private deltaQuaternion: THREE.Quaternion = new THREE.Quaternion();
 
   constructor(obj: THREE.Object3D, rb: Ammo.btRigidBody) {
     super(obj);
@@ -35,6 +38,17 @@ export class RigidObject extends VRObject {
   onDropped(): void {
     this.enablePhysics();
     this.syncOnUpdate = false;
+
+    // Apply position intertia
+    var { x, y, z } = this.deltaPosition;
+    const impulse = new Ammo.btVector3(x, y, z).op_mul(1 / Clock.delta);
+    this.rigidBody.applyCentralImpulse(impulse);
+
+    // Apply rotation intertia
+    const rotation = new THREE.Euler().setFromQuaternion(this.deltaQuaternion.clone().invert());
+    var { x, y, z } = rotation;
+    const torque = new Ammo.btVector3(x, y, z).op_mul(ROTATION_INERTIA_FACTOR);
+    this.rigidBody.applyTorqueImpulse(torque);
   }
 
   disablePhysics() {
@@ -51,6 +65,7 @@ export class RigidObject extends VRObject {
   /** Updates the Ammo rigid body to the position and rotation of the THREE object */
   sync() {
     const oldPosition = this.getRBPosition();
+    const oldQuaternion = this.getRBQuaternion();
 
     // Update rigid body position and rotation
     const newPosition = this.object.getWorldPosition(new THREE.Vector3());
@@ -58,8 +73,9 @@ export class RigidObject extends VRObject {
     const newQuaternion = this.object.getWorldQuaternion(new THREE.Quaternion());
     this.setRBQuaternion(newQuaternion);
 
-    // Calculate delta
-    this.deltaPosition.copy(newPosition).sub(oldPosition).divideScalar(Clock.delta);
+    // Calculate deltas
+    this.deltaPosition.copy(newPosition).sub(oldPosition);
+    this.deltaQuaternion.copy(oldQuaternion).multiply(newQuaternion.clone().invert());
   }
 
   /** Updates the THREE object to the position and rotation of the Ammo rigid body */
