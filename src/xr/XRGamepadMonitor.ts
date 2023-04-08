@@ -39,6 +39,8 @@ export enum EventTypes {
   ON_AXIS_CHANGED,
   ON_AXIS_X_HOLDED, // is triggered every N seconds while the X axis of the stick is being hold out of the (0,0)
   ON_AXIS_Y_HOLDED, // same but for Y axis
+  ON_AXIS_PULLED,
+  ON_AXIS_RELEASED,
 }
 
 /**
@@ -46,7 +48,6 @@ export enum EventTypes {
  */
 export class XRGamepadMonitor extends EventsDispatcher {
   private buttonsState: boolean[] = null;
-  private axesPreviousState: number[] = null;
   private handedness: Handedness;
   private xr: THREE.WebXRManager;
 
@@ -89,10 +90,26 @@ export class XRGamepadMonitor extends EventsDispatcher {
 
   private pollAxes(gamepad: Gamepad) {
     if (gamepad.axes.length >= 4) {
-      this.stickRawPosition = new THREE.Vector2(gamepad.axes[2], gamepad.axes[3]);
-      this.stickPosition = this.applyDeadZone([gamepad.axes[2], gamepad.axes[3]]);
+      this.stickRawPosition.set(gamepad.axes[2], gamepad.axes[3]);
+      this.stickPosition.copy(this.applyDeadZone([gamepad.axes[2], gamepad.axes[3]]));
 
-      if (this.stickPreviousPosition.distanceTo(this.stickPosition) > 0) {
+      const stickStarted = this.stickPosition.lengthSq() != 0 && this.stickPreviousPosition.lengthSq() == 0;
+      const stickReleased = this.stickPosition.lengthSq() == 0 && this.stickPreviousPosition.lengthSq() != 0;
+      const positionChanged = this.stickPreviousPosition.distanceTo(this.stickPosition) > 0;
+
+      if (stickStarted) {
+        this.dispatchEvent({
+          type: EventTypes.ON_AXIS_PULLED,
+          handedness: this.handedness,
+        });
+      } else if (stickReleased) {
+        this.dispatchEvent({
+          type: EventTypes.ON_AXIS_RELEASED,
+          handedness: this.handedness,
+        });
+      }
+
+      if (positionChanged) {
         this.dispatchEvent({
           type: EventTypes.ON_AXIS_CHANGED,
           handedness: this.handedness,
@@ -100,6 +117,7 @@ export class XRGamepadMonitor extends EventsDispatcher {
           frameDelta: Clock.delta,
         });
       }
+
       this.checkStickHolding();
       this.stickPreviousPosition.copy(this.stickPosition);
     }

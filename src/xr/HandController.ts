@@ -6,7 +6,7 @@ import { XRRemappedGamepad } from '../types/XRRemappedGamepad';
 import { info, warn } from '../utils/logger';
 import { Handedness, XRGamepadMonitor, EventTypes as XRGamepadMonitorEvents } from './XRGamepadMonitor';
 
-const SHOW_HIT_POINT = true;
+const SHOW_HIT_POINT = false;
 
 type GrabbingType = {
   object: RigidObject;
@@ -105,6 +105,9 @@ export class HandController {
       else if (event.button == 'Trigger') this.onSelectUp();
     });
 
+    this.monitor.addEventListener(XRGamepadMonitorEvents.ON_AXIS_PULLED, this.onStickPulled.bind(this));
+    this.monitor.addEventListener(XRGamepadMonitorEvents.ON_AXIS_RELEASED, this.onStickReleased.bind(this));
+
     const mesh = this.buildController(event.data);
     mesh.name = this.handedness + '-controller';
     this.controller.add(mesh);
@@ -117,13 +120,11 @@ export class HandController {
 
   private onThumbButtonDown() {}
 
-  private onSelectDown() {
-    if (!this.highlighted) this.checkFloorIntersection = true;
+  private onStickPulled() {
+    this.checkFloorIntersection = true;
   }
 
-  private onJoystickDown() {}
-
-  private onSelectUp() {
+  private onStickReleased() {
     if (this.floorIntersection) {
       this.teleport();
       this.floorIntersection = undefined;
@@ -132,6 +133,12 @@ export class HandController {
 
     this.checkFloorIntersection = false;
   }
+
+  private onSelectDown() {}
+
+  private onJoystickDown() {}
+
+  private onSelectUp() {}
 
   private onGripDown() {
     if (this.highlighted) this.grabObject();
