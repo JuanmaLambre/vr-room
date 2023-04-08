@@ -2,7 +2,7 @@ import Ammo from 'ammojs-typed';
 import { RigidObject } from './RigidObject';
 import { rigidBodyFromObject } from './RigidObjectFactory';
 
-export class HandControllerObject extends RigidObject {
+export class SolidHandObject extends RigidObject {
   constructor(obj: THREE.Object3D) {
     const shape = new Ammo.btSphereShape(0.1);
     const rb = rigidBodyFromObject(obj, { shape });

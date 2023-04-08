@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory';
-import { HandControllerObject } from '../objects/HandControllerObject';
 import { RigidObject } from '../objects/RigidObject';
 import { SceneManager } from '../SceneManager';
 import { XRRemappedGamepad } from '../types/XRRemappedGamepad';
@@ -21,7 +20,6 @@ export class HandController {
   private monitor: XRGamepadMonitor;
   private sceneManager: SceneManager;
   private controller: THREE.XRTargetRaySpace;
-  private rigidObject: HandControllerObject;
   private gamepad: XRRemappedGamepad;
   private baseReferenceSpace: XRReferenceSpace;
 
@@ -109,9 +107,7 @@ export class HandController {
 
     const mesh = this.buildController(event.data);
     mesh.name = this.handedness + '-controller';
-    this.rigidObject = new HandControllerObject(mesh);
-    this.controller.add(this.rigidObject.object);
-    this.sceneManager.addRigidObject(this.rigidObject, false);
+    this.controller.add(mesh);
   }
 
   private onDisconnected(event: THREE.Event & THREE.XRTargetRaySpace) {
