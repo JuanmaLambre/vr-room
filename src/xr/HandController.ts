@@ -7,6 +7,7 @@ import { Handedness, XRGamepadMonitor, EventTypes as XRGamepadMonitorEvents } fr
 import { VRObject } from '../objects/VRObject';
 
 const SHOW_HIT_POINT = false;
+const NEARING_RADIUS = 0.1;
 
 type GrabbingType = {
   object: VRObject;
@@ -76,7 +77,7 @@ export class HandController {
     if (!this.monitor) return;
 
     this.monitor.update();
-    this.checkObjectAiming();
+    this.checkObjectHighlighting();
     this.updateFloorIntersection();
   }
 
@@ -258,13 +259,36 @@ export class HandController {
     }
   }
 
-  private checkObjectAiming() {
+  private checkObjectHighlighting() {
     if (this.highlighted) {
       this.highlighted.highlight(false);
       this.highlighted = undefined;
     }
 
-    const objects = this.sceneManager.rigidObjects.filter((ro) => ro.enabled && ro.isInteractable);
+    this.checkForNearObject();
+
+    if (!this.highlighted) this.checkObjectAiming();
+
+    this.highlighted?.highlight();
+  }
+
+  private checkForNearObject() {
+    const objects = this.sceneManager.vrObjects.filter((ro) => ro.enabled && ro.isInteractable);
+    const handPosition = this.controller.getWorldPosition(new THREE.Vector3());
+
+    const nearest = objects.sort((a, b) => {
+      const aDist = a.object.getWorldPosition(new THREE.Vector3()).distanceToSquared(handPosition);
+      const bDist = b.object.getWorldPosition(new THREE.Vector3()).distanceToSquared(handPosition);
+      return aDist - bDist;
+    })[0];
+
+    const nearestDist = nearest.object.getWorldPosition(new THREE.Vector3()).distanceTo(handPosition);
+
+    if (nearestDist <= NEARING_RADIUS) this.highlighted = nearest;
+  }
+
+  private checkObjectAiming() {
+    const objects = this.sceneManager.vrObjects.filter((ro) => ro.enabled && ro.isInteractable);
 
     const intersections = objects
       .map((ro) => {
@@ -281,7 +305,6 @@ export class HandController {
     if (closest) {
       this.debugHitPoint.position.copy(closest.intersection);
       this.highlighted = closest.object;
-      this.highlighted.highlight();
     }
 
     this.debugHitPoint.visible = SHOW_HIT_POINT && !!closest;
@@ -310,9 +333,7 @@ export class HandController {
     }
 
     const dropped = this.grabbing.object;
-    // const worldPosition = dropped.object.getWorldPosition(new THREE.Vector3());
     this.sceneManager.scene.attach(dropped.object);
-    // dropped.object.position.copy(worldPosition);
     this.grabbing = undefined;
 
     dropped.onDropped();
