@@ -1,15 +1,18 @@
 import * as THREE from 'three';
-import { RigidObject } from './objects/RigidObject';
 import { WorldManager } from './WorldManager';
+import { VRObject } from './objects/VRObject';
+import { RigidObject } from './objects/RigidObject';
 
 export class SceneManager {
-  world: WorldManager;
   scene: THREE.Scene;
   marker: THREE.Mesh;
   floor: THREE.Mesh;
   walkingArea: THREE.Box3;
 
+  protected world: WorldManager;
+
   private static _instance: SceneManager;
+  private vrObjectsList: VRObject[] = [];
 
   static get instance(): SceneManager {
     if (this._instance == undefined) this._instance = new SceneManager();
@@ -37,17 +40,22 @@ export class SceneManager {
     this.walkingArea = floorGeom.boundingBox.clone();
   }
 
-  get rigidObjects() {
-    return this.world.rigidObjects.map(({ object }) => object);
+  get vrObjects() {
+    return [...this.vrObjectsList];
   }
 
-  addRigidObject(ro: RigidObject, addToScene = true) {
-    this.world.add(ro);
-    if (addToScene) this.scene.add(ro.object);
+  addVRObject(obj: VRObject, addToScene = true) {
+    this.vrObjectsList.push(obj);
+    if (obj instanceof RigidObject) this.world.add(obj);
+    if (addToScene) this.scene.add(obj.object);
   }
 
-  removeRigidObject(ro: RigidObject) {
-    this.world.remove(ro);
+  enablePhysics(ro: RigidObject) {
+    this.world.enable(ro);
+  }
+
+  disablePhysics(ro: RigidObject) {
+    this.world.disable(ro);
   }
 
   update() {

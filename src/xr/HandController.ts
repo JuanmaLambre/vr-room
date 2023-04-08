@@ -1,15 +1,15 @@
 import * as THREE from 'three';
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory';
-import { RigidObject } from '../objects/RigidObject';
 import { SceneManager } from '../SceneManager';
 import { XRRemappedGamepad } from '../types/XRRemappedGamepad';
 import { info, warn } from '../utils/logger';
 import { Handedness, XRGamepadMonitor, EventTypes as XRGamepadMonitorEvents } from './XRGamepadMonitor';
+import { VRObject } from '../objects/VRObject';
 
 const SHOW_HIT_POINT = false;
 
 type GrabbingType = {
-  object: RigidObject;
+  object: VRObject;
 };
 
 export class HandController {
@@ -24,7 +24,7 @@ export class HandController {
   private baseReferenceSpace: XRReferenceSpace;
 
   // Temporal buffers
-  private highlighted?: RigidObject;
+  private highlighted?: VRObject;
   private floorIntersection?: THREE.Vector3;
   private checkFloorIntersection: boolean = false;
   private grabbing?: GrabbingType;
@@ -310,9 +310,9 @@ export class HandController {
     }
 
     const dropped = this.grabbing.object;
-    const worldPosition = dropped.object.getWorldPosition(new THREE.Vector3());
-    this.sceneManager.scene.add(dropped.object);
-    dropped.object.position.copy(worldPosition);
+    // const worldPosition = dropped.object.getWorldPosition(new THREE.Vector3());
+    this.sceneManager.scene.attach(dropped.object);
+    // dropped.object.position.copy(worldPosition);
     this.grabbing = undefined;
 
     dropped.onDropped();

@@ -80,11 +80,11 @@ function setupThreejs() {
   groundObject.name = 'ground';
   const ground = new RigidGeometry(groundObject);
   ground.setMass(0);
-  sceneManager.addRigidObject(ground);
+  sceneManager.addVRObject(ground);
 
   // Create a debug box
   const box = new DebugBoxObject();
-  sceneManager.addRigidObject(box);
+  sceneManager.addVRObject(box);
 }
 
 function onWindowResize() {

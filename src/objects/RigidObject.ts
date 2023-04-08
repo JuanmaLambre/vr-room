@@ -52,13 +52,13 @@ export class RigidObject extends VRObject {
   }
 
   disablePhysics() {
-    SceneManager.instance.world.disable(this);
+    SceneManager.instance.disablePhysics(this);
     this.rigidBody.setLinearVelocity(new Ammo.btVector3(0, 0, 0));
     this.rigidBody.setAngularVelocity(new Ammo.btVector3(0, 0, 0));
   }
 
   enablePhysics() {
-    SceneManager.instance.world.enable(this);
+    SceneManager.instance.enablePhysics(this);
     this.rigidBody.activate();
   }
 
@@ -81,6 +81,7 @@ export class RigidObject extends VRObject {
   /** Updates the THREE object to the position and rotation of the Ammo rigid body */
   update() {
     if (this.syncOnUpdate) {
+      console.log('>>> SYNCING');
       this.sync();
       return;
     }
