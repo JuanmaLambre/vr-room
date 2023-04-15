@@ -11,8 +11,6 @@ export class DebugBoxObject extends RigidGeometry {
   constructor() {
     const boxGeom = new THREE.BoxGeometry(0.2, 0.5, 0.2);
     const object = new THREE.Mesh(boxGeom, new THREE.MeshPhongMaterial({ color: 0xaa0000 }));
-    object.position.set(0, 5, -2);
-    object.quaternion.set(0, 0, 0.5, 1);
     object.name = 'rigid box';
 
     super(object);
@@ -98,8 +96,7 @@ export class DebugBoxObject extends RigidGeometry {
     const btPos = btTransform.getOrigin();
     const rbPos = new THREE.Vector3(btPos.x(), btPos.y(), btPos.z());
 
-    const btQuat = new Ammo.btQuaternion(0, 0, 0, 0);
-    btTransform.getBasis().getRotation(btQuat);
+    const btQuat = btTransform.getRotation();
     const rbQuat = new THREE.Quaternion(btQuat.x(), btQuat.y(), btQuat.z(), btQuat.w());
 
     const xAxis = new THREE.Vector3(1, 0, 0).applyQuaternion(rbQuat).multiplyScalar(width / 2);

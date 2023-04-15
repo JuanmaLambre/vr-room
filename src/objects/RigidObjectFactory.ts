@@ -21,8 +21,8 @@ export function rigidBodyFromObject(object: THREE.Object3D, opts: RBOpts = {}): 
   const localIntertia = new Ammo.btVector3();
   shape.calculateLocalInertia(mass, localIntertia);
 
-  const pos = object.position;
-  const quat = object.quaternion;
+  const pos = object.getWorldPosition(new THREE.Vector3());
+  const quat = object.getWorldQuaternion(new THREE.Quaternion());
   const transform = new Ammo.btTransform();
   transform.setIdentity();
   transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));

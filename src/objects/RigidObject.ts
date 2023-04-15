@@ -18,12 +18,21 @@ export class RigidObject extends VRObject {
     this.rigidBody = rb;
   }
 
-  /** World position */
-  get rbPosition() {
-    const transform = new Ammo.btTransform();
-    this.rigidBody.getMotionState().getWorldTransform(transform);
-    const position = transform.getOrigin();
-    return new THREE.Vector3(position.x(), position.y(), position.z());
+  setPosition(localPos: THREE.Vector3) {
+    this.object.position.copy(localPos);
+    const worldPos = this.object.getWorldPosition(new THREE.Vector3());
+    this.setRBPosition(worldPos);
+  }
+
+  setRotation(localEuler: THREE.Euler) {
+    const localQuat = new THREE.Quaternion().setFromEuler(localEuler);
+    this.setQuaternion(localQuat);
+  }
+
+  setQuaternion(localQuat: THREE.Quaternion) {
+    this.object.quaternion.copy(localQuat);
+    const worldQuat = this.object.getWorldQuaternion(new THREE.Quaternion());
+    this.setRBQuaternion(worldQuat);
   }
 
   setMass(mass: number) {
@@ -81,15 +90,16 @@ export class RigidObject extends VRObject {
   /** Updates the THREE object to the position and rotation of the Ammo rigid body */
   update() {
     if (this.syncOnUpdate) {
-      console.log('>>> SYNCING');
       this.sync();
       return;
     }
 
-    const position = this.getRBPosition();
-    this.object.position.copy(position);
-    const quaternion = this.getRBQuaternion();
-    this.object.quaternion.copy(quaternion);
+    const worldPosition = this.getRBPosition();
+    const localPosition = this.object.parent.worldToLocal(worldPosition);
+    this.object.position.copy(localPosition);
+
+    const worldQuat = this.getRBQuaternion();
+    this.object.quaternion.copy(worldQuat);
   }
 
   /** Returns in world coordinates */
@@ -112,8 +122,7 @@ export class RigidObject extends VRObject {
   private getRBQuaternion(): THREE.Quaternion {
     const btTransform = new Ammo.btTransform();
     this.rigidBody.getMotionState().getWorldTransform(btTransform);
-    const quat = new Ammo.btQuaternion(0, 0, 0, 0);
-    btTransform.getBasis().getRotation(quat);
+    const quat = btTransform.getRotation();
     return new THREE.Quaternion(quat.x(), quat.y(), quat.z(), quat.w());
   }
 
@@ -121,6 +130,7 @@ export class RigidObject extends VRObject {
     const transform = new Ammo.btTransform();
     this.rigidBody.getMotionState().getWorldTransform(transform);
     transform.setRotation(new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w));
+    this.rigidBody.setWorldTransform(transform);
     this.rigidBody.getMotionState().setWorldTransform(transform);
   }
 }
