@@ -9,9 +9,13 @@ import { Clock } from './utils/Clock';
 import { RigidGeometry } from './objects/RigidGeometry';
 import { DebugBoxObject } from './objects/DebugBoxObject';
 import { CanvasLogger, canvaslog } from './utils/logger';
+import { AnchorPoint } from './anchors/AnchorPoint';
+import { AnchorsFactory } from './anchors/AnchorsFactory';
 
-(window as any).THREE = THREE;
-(window as any).Ammo = Ammo;
+const w = window as any;
+
+w.THREE = THREE;
+w.Ammo = Ammo;
 
 let renderer: THREE.WebGLRenderer;
 let camera: THREE.PerspectiveCamera;
@@ -27,7 +31,7 @@ let handController1: HandController;
 function setupRenderer() {
   // Make a renderer that fills the screen
   renderer = new THREE.WebGLRenderer({ antialias: true });
-  (window as any).renderer = renderer;
+  w.renderer = renderer;
 
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.toneMapping = THREE.LinearToneMapping;
@@ -43,9 +47,9 @@ function setupRenderer() {
 
 function setupThreejs() {
   sceneManager = SceneManager.instance;
-  (window as any).sceneManager = sceneManager;
+  w.sceneManager = sceneManager;
 
-  camera = new THREE.PerspectiveCamera(50, undefined, 0.1, 10000);
+  camera = new THREE.PerspectiveCamera(50, undefined, 0.01, 10000);
   camera.position.set(0, 1, 5);
 
   const light = new THREE.PointLight(0xffffff, 1);
@@ -84,7 +88,21 @@ function setupThreejs() {
 
   // Create a debug box
   const box = new DebugBoxObject();
+  box.setPosition(new THREE.Vector3(-1, 1, -0.3));
   sceneManager.addVRObject(box);
+  w.box = box;
+
+  // Create a second box
+  const second = new DebugBoxObject();
+  second.setPosition(new THREE.Vector3(1, 1, -1));
+  second.setRotation(new THREE.Euler(Math.PI / 3, 0, 1));
+  sceneManager.addVRObject(second);
+  // second.disablePhysics();
+  w.second = second;
+
+  const anchor = new AnchorPoint(new THREE.Vector3(-1.12, 1.09, 0.77));
+  AnchorsFactory.add(anchor);
+  sceneManager.scene.add(anchor.buildDebugMesh());
 }
 
 function onWindowResize() {
@@ -99,8 +117,8 @@ function setupControllers() {
   handController1 = new HandController(renderer.xr, sceneManager);
   handController1.setup(1);
 
-  (window as any).handController0 = handController0;
-  (window as any).handController1 = handController1;
+  w.handController0 = handController0;
+  w.handController1 = handController1;
 }
 
 function render() {
@@ -121,7 +139,7 @@ async function start() {
   await Ammo(Ammo);
   setupThreejs();
 
-  (window as any).canvaslog = canvaslog;
+  w.canvaslog = canvaslog;
 
   // Add a button to enter/exit vr to the page
   document.body.appendChild(VRButton.createButton(renderer));
