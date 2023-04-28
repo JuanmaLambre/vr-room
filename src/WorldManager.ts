@@ -32,13 +32,11 @@ export class WorldManager {
   }
 
   disable(ro: RigidObject) {
-    this.remove(ro);
-    return;
+    this.dynamicsWorld.removeRigidBody(ro.rigidBody);
   }
 
   enable(ro: RigidObject) {
-    this.add(ro);
-    return;
+    this.dynamicsWorld.addRigidBody(ro.rigidBody);
   }
 
   update() {
