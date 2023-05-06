@@ -21,6 +21,11 @@ export class VRObject {
     return this.hitSurface != undefined;
   }
 
+  setWorldPosition(pos: THREE.Vector3) {
+    const relative = this.object.worldToLocal(pos.clone());
+    this.object.position.copy(relative);
+  }
+
   highlight(value = true) {
     this.highlightMaterials.forEach((mat) => {
       const emissive = value ? HIGHLIGHT_EMISSIVE : mat.userData.originalEmissive;

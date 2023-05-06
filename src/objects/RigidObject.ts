@@ -24,6 +24,12 @@ export class RigidObject extends VRObject {
     this.setRBPosition(worldPos);
   }
 
+  setWorldPosition(pos: THREE.Vector3): void {
+    super.setWorldPosition(pos);
+    this.setRBPosition(pos);
+    this.rigidBody.activate();
+  }
+
   setRotation(localEuler: THREE.Euler) {
     const localQuat = new THREE.Quaternion().setFromEuler(localEuler);
     this.setQuaternion(localQuat);
@@ -40,13 +46,17 @@ export class RigidObject extends VRObject {
   }
 
   onGrabbed(): void {
+    super.onGrabbed();
+
     this.disablePhysics();
     this.syncOnUpdate = true;
   }
 
   onDropped(): void {
-    this.enablePhysics();
+    super.onDropped();
+
     this.syncOnUpdate = false;
+    this.enablePhysics();
 
     // Apply position intertia
     var { x, y, z } = this.deltaPosition;

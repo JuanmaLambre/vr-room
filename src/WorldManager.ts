@@ -2,11 +2,16 @@ import Ammo from 'ammojs-typed';
 import { RigidObject } from './objects/RigidObject';
 import { Clock } from './utils/Clock';
 
+type RigidObjectEntry = {
+  ro: RigidObject;
+  inWorld: boolean;
+};
+
 /**
  * Wrapper for btDiscreteDynamicsWorld
  */
 export class WorldManager {
-  rigidObjects: RigidObject[] = [];
+  rigidObjects: RigidObjectEntry[] = [];
 
   private dynamicsWorld: Ammo.btDiscreteDynamicsWorld;
 
@@ -21,26 +26,47 @@ export class WorldManager {
   }
 
   add(ro: RigidObject) {
-    this.dynamicsWorld.addRigidBody(ro.rigidBody);
-    if (this.rigidObjects.indexOf(ro) < 0) this.rigidObjects.push(ro);
+    const entry = this.getEntry(ro);
+
+    if (!entry) {
+      this.rigidObjects.push({ ro, inWorld: true });
+      this.dynamicsWorld.addRigidBody(ro.rigidBody);
+    } else if (!entry.inWorld) {
+      this.dynamicsWorld.addRigidBody(ro.rigidBody);
+    }
   }
 
   remove(ro: RigidObject) {
-    this.dynamicsWorld.removeRigidBody(ro.rigidBody);
-    const idx = this.rigidObjects.indexOf(ro);
-    if (idx >= 0) this.rigidObjects.splice(idx, 1);
+    const entry = this.getEntry(ro);
+
+    if (entry) {
+      const idx = this.rigidObjects.indexOf(entry);
+      this.rigidObjects.splice(idx, 1);
+      if (entry.inWorld) this.dynamicsWorld.removeRigidBody(ro.rigidBody);
+    }
   }
 
   disable(ro: RigidObject) {
+    const entry = this.getEntry(ro);
+    if (!entry || !entry.inWorld) return;
+
     this.dynamicsWorld.removeRigidBody(ro.rigidBody);
   }
 
   enable(ro: RigidObject) {
-    this.dynamicsWorld.addRigidBody(ro.rigidBody);
+    const entry = this.getEntry(ro);
+    if (entry && entry.inWorld) return;
+
+    if (!entry) this.add(ro);
+    else this.dynamicsWorld.addRigidBody(ro.rigidBody);
   }
 
   update() {
     this.dynamicsWorld.stepSimulation(Clock.delta, 10);
-    this.rigidObjects.forEach((ro) => ro.update());
+    this.rigidObjects.forEach((entry) => entry.ro.update());
+  }
+
+  private getEntry(ro: RigidObject): RigidObjectEntry {
+    return this.rigidObjects.find((entry) => entry.ro == ro);
   }
 }
