@@ -1,3 +1,7 @@
+# VR Room
+
+Basic scaffolding for a VR project with physics on WebXR
+
 ### Add a new testbench
 
 Webpack is configured (by us) to automatically bundle and serve any new testbench created. To add a new one, simply:
