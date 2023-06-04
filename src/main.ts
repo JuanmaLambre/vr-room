@@ -1,19 +1,16 @@
 import './style.css';
 import * as THREE from 'three';
-import Ammo from 'ammojs-typed';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { HandController } from './xr/HandController';
 import { SceneManager } from './SceneManager';
 import { Clock } from './utils/Clock';
-import { RigidGeometry } from './objects/RigidGeometry';
-import { DebugBoxObject } from './objects/DebugBoxObject';
 import { CanvasLogger, canvaslog } from './utils/logger';
+import { DebugVRBox } from './objects/DebugVRBox';
 
+// For debugging
 const w = window as any;
-
 w.THREE = THREE;
-w.Ammo = Ammo;
 
 let renderer: THREE.WebGLRenderer;
 let camera: THREE.PerspectiveCamera;
@@ -77,26 +74,8 @@ function setupThreejs() {
   board.translateZ(-5);
   sceneManager.scene.add(board);
 
-  // Create a debug ground plane
-  const groundObject = new THREE.Mesh(sceneManager.floor.geometry, new THREE.MeshPhongMaterial({ color: 0x111133 }));
-  groundObject.name = 'ground';
-  const ground = new RigidGeometry(groundObject);
-  ground.setMass(0);
-  sceneManager.addVRObject(ground);
-
-  // Create a debug box
-  const box = new DebugBoxObject();
-  box.setPosition(new THREE.Vector3(-1, 1, -0.3));
+  const box = new DebugVRBox();
   sceneManager.addVRObject(box);
-  w.box = box;
-
-  // Create a second box
-  const second = new DebugBoxObject();
-  second.setPosition(new THREE.Vector3(1, 1, -1));
-  second.setRotation(new THREE.Euler(Math.PI / 3, 0, 1));
-  sceneManager.addVRObject(second);
-  // second.disablePhysics();
-  w.second = second;
 }
 
 function onWindowResize() {
@@ -122,15 +101,12 @@ function render() {
   handController0?.update();
   handController1?.update();
 
-  sceneManager.update();
-
   // Draw everything
   renderer.render(sceneManager.scene, camera);
 }
 
 async function start() {
   setupRenderer();
-  await Ammo(Ammo);
   setupThreejs();
 
   w.canvaslog = canvaslog;

@@ -282,6 +282,8 @@ export class HandController {
       return aDist - bDist;
     })[0];
 
+    if (!nearest) return;
+
     const nearestDist = nearest.object.getWorldPosition(new THREE.Vector3()).distanceTo(handPosition);
 
     if (nearestDist <= NEARING_RADIUS) this.highlighted = nearest;

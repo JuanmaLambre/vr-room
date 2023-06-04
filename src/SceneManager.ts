@@ -1,15 +1,11 @@
 import * as THREE from 'three';
-import { WorldManager } from './WorldManager';
 import { VRObject } from './objects/VRObject';
-import { RigidObject } from './objects/RigidObject';
 
 export class SceneManager {
   scene: THREE.Scene;
   marker: THREE.Mesh;
   floor: THREE.Mesh;
   walkingArea: THREE.Box3;
-
-  protected world: WorldManager;
 
   private static _instance: SceneManager;
   private vrObjectsList: VRObject[] = [];
@@ -20,7 +16,6 @@ export class SceneManager {
   }
 
   private constructor() {
-    this.world = new WorldManager();
     this.scene = new THREE.Scene();
 
     const markerGeom = new THREE.CircleGeometry(0.1);
@@ -46,19 +41,6 @@ export class SceneManager {
 
   addVRObject(obj: VRObject, addToScene = true) {
     this.vrObjectsList.push(obj);
-    if (obj instanceof RigidObject) this.world.add(obj);
     if (addToScene) this.scene.add(obj.object);
-  }
-
-  enablePhysics(ro: RigidObject) {
-    this.world.enable(ro);
-  }
-
-  disablePhysics(ro: RigidObject) {
-    this.world.disable(ro);
-  }
-
-  update() {
-    this.world.update();
   }
 }
