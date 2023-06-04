@@ -9,8 +9,6 @@ import { Clock } from './utils/Clock';
 import { RigidGeometry } from './objects/RigidGeometry';
 import { DebugBoxObject } from './objects/DebugBoxObject';
 import { CanvasLogger, canvaslog } from './utils/logger';
-import { AnchorPoint } from './anchors/AnchorPoint';
-import { AnchorsFactory } from './anchors/AnchorsFactory';
 
 const w = window as any;
 
