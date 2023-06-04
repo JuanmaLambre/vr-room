@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { findObjectBy } from '../utils/findObjectsBy';
 
 const HIGHLIGHT_EMISSIVE = new THREE.Color(0x00aa00);
 
@@ -52,5 +53,17 @@ export class VRObject {
         });
       }
     });
+  }
+
+  protected populateHitSurface() {
+    this.hitSurface = this.findObjectByPrefix('hitSurface');
+
+    if (this.hitSurface) {
+      this.hitSurface.visible = false;
+    }
+  }
+
+  protected findObjectByPrefix(prefix: string): THREE.Object3D {
+    return findObjectBy(this.object, (obj) => obj.name.startsWith(prefix));
   }
 }

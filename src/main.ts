@@ -11,6 +11,7 @@ import { DebugVRBox } from './objects/DebugVRBox';
 // For debugging
 const w = window as any;
 w.THREE = THREE;
+w.endSession = () => renderer.xr.getSession().end();
 
 let renderer: THREE.WebGLRenderer;
 let camera: THREE.PerspectiveCamera;

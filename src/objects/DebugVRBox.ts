@@ -15,6 +15,13 @@ export class DebugVRBox extends VRObject {
     const material = new THREE.MeshStandardMaterial({ color: 0x990022 });
     const mesh = new THREE.Mesh(geometry, material);
 
+    const hitSurface = new THREE.Mesh(geometry);
+    hitSurface.name = 'hitSurface';
+    mesh.add(hitSurface);
+
     super(mesh);
+
+    this.populateHitSurface();
+    this.populateHighlightMats();
   }
 }
