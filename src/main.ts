@@ -97,10 +97,6 @@ function setupThreejs() {
   sceneManager.addVRObject(second);
   // second.disablePhysics();
   w.second = second;
-
-  const anchor = new AnchorPoint(new THREE.Vector3(-1.12, 1.09, 0.77));
-  AnchorsFactory.add(anchor);
-  sceneManager.scene.add(anchor.buildDebugMesh());
 }
 
 function onWindowResize() {
